@@ -1,0 +1,74 @@
+---
+title: "HW1"
+format: html
+author: Emilia Ilioski
+editor: visual
+---
+
+This is the link to the repo:
+
+Question 1:
+
+```{r}
+#part a
+soybean_data <- read.csv("forty+soybean+cultivars+from+subsequent+harvests/data.csv")
+head(soybean_data)
+```
+
+```{r}
+#part b
+print(nrow(soybean_data)) # should be 320 
+print(length(unique(soybean_data$Cultivar))) #should be 40
+print(length(unique(soybean_data$Season))) #should be 2 
+table(soybean_data$Season)
+```
+
+```{r}
+#part c
+#1) What is the correlation between plant height (PH) and grain yield (GY)?
+print(cor(soybean_data$PH, soybean_data$GY)) 
+#2) Calculate the correlation between PH and GY separately for each season. Which season has the higher correlation?
+season1 <- soybean_data[soybean_data$Season == 1,]
+season2 <- soybean_data[soybean_data$Season == 2,]
+print(cor(season1$PH, season1$GY))
+print(cor(season2$PH, season2$GY))
+```
+
+```{r}
+#3) What is the grain yield of the soybean observation with the greatest plant height?
+soybean_data[which.max(soybean_data$PH), "GY"]
+```
+
+```{r}
+#4) What percentage of observations have a thousand seed weight (MHG) greater than the overall average thousand seed weight?
+avgThousandSeedWeight <- mean(soybean_data$MHG)
+print(mean(soybean_data$MHG > avgThousandSeedWeight))
+```
+
+```{r}
+#5) Which cultivar has the highest average grain yield?
+groupAvgs <- aggregate(GY ~ Cultivar, data = soybean_data, FUN = mean)
+print(groupAvgs[which.max(groupAvgs$GY), "Cultivar" ])
+```
+
+```{r}
+#Part d
+library(dplyr)
+soybean_data$Season <- as.character(soybean_data$Season)
+avgs <- soybean_data |> summarize(Season = "All", across(where(is.numeric), ~ mean(.x)))
+seasonAvgs <- soybean_data |> group_by(Season) |> summarize(across(where(is.numeric), ~ mean(.x)))
+print(bind_rows(avgs, seasonAvgs))
+```
+
+```{r}
+#Part E
+#Ho (null hypothesis): ngrain yield does not differ by season (ngrain yield season 1 = ngrain yield season 2)
+#Ha (aleternative hypothesis): ngrain yield does differ by season (ngrain yield season 1 != ngrain yield season 2)
+soybean_data$Season <- as.numeric(soybean_data$Season)
+t.test(soybean_data$GY, soybean_data$Season)
+```
+
+```{r}
+#part E continued
+#There is a p-value of less than 2.2e-16 thus we reject the null hypothesis that ngrain yield does not differ by season. There is statistically significant evidence to suggest that the mean of ngrain yield season 1 is not equal to ngrain yield season 2.
+```
