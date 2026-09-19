@@ -1,6 +1,8 @@
 ---
 title: "HW1"
-format: html
+format:
+  html:
+    embed-resources: true
 author: Emilia Ilioski
 editor: visual
 ---
