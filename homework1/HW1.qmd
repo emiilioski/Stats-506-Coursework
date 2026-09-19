@@ -5,7 +5,7 @@ author: Emilia Ilioski
 editor: visual
 ---
 
-This is the link to the repo:
+This is the link to the repo: <https://github.com/emiilioski/Stats-506-Coursework.git>
 
 Question 1:
 
@@ -13,6 +13,7 @@ Question 1:
 #part a
 soybean_data <- read.csv("forty+soybean+cultivars+from+subsequent+harvests/data.csv")
 head(soybean_data)
+names(soybean_data)
 ```
 
 ```{r}
@@ -34,6 +35,8 @@ print(cor(season1$PH, season1$GY))
 print(cor(season2$PH, season2$GY))
 ```
 
+Season 1 has the higher correlation.
+
 ```{r}
 #3) What is the grain yield of the soybean observation with the greatest plant height?
 soybean_data[which.max(soybean_data$PH), "GY"]
@@ -42,7 +45,7 @@ soybean_data[which.max(soybean_data$PH), "GY"]
 ```{r}
 #4) What percentage of observations have a thousand seed weight (MHG) greater than the overall average thousand seed weight?
 avgThousandSeedWeight <- mean(soybean_data$MHG)
-print(mean(soybean_data$MHG > avgThousandSeedWeight))
+print(mean(soybean_data$MHG > avgThousandSeedWeight) * 100)
 ```
 
 ```{r}
@@ -64,11 +67,249 @@ print(bind_rows(avgs, seasonAvgs))
 #Part E
 #Ho (null hypothesis): ngrain yield does not differ by season (ngrain yield season 1 = ngrain yield season 2)
 #Ha (aleternative hypothesis): ngrain yield does differ by season (ngrain yield season 1 != ngrain yield season 2)
-soybean_data$Season <- as.numeric(soybean_data$Season)
-t.test(soybean_data$GY, soybean_data$Season)
+soybean_data$Season <- as.factor(soybean_data$Season)
+t.test(GY ~ Season, data = soybean_data)
 ```
+
+There is a p-value of greater than .05 (alpha) thus we fail to reject the null hypothesis that ngrain yield does not differ by season. There is insufficient statistically significant evidence to suggest that the mean of ngrain yield season 1 is not equal to ngrain yield season 2.
 
 ```{r}
 #part E continued
-#There is a p-value of less than 2.2e-16 thus we reject the null hypothesis that ngrain yield does not differ by season. There is statistically significant evidence to suggest that the mean of ngrain yield season 1 is not equal to ngrain yield season 2.
+#Hoi (null hypothesis): ngrain yield does not differ by season (ngrain yield season 1 = ngrain yield season 2) in Cultivar i
+#Hai (aleternative hypothesis): ngrain yield does differ by season (ngrain yield season 1 != ngrain yield season 2) in Cultivar i
+#for i in c(1,2,3,4,5)
+set.seed(12)
+chosenCultivar <- sample(unique(soybean_data$Cultivar), 5)
+print(chosenCultivar)
+
+soybean_dataCultivar1 <- soybean_data[soybean_data$Cultivar == chosenCultivar[1],]
+t.test(GY ~ Season, data = soybean_dataCultivar1)
+soybean_dataCultivar2 <- soybean_data[soybean_data$Cultivar == chosenCultivar[2],]
+t.test(GY ~ Season, data = soybean_dataCultivar2)
+soybean_dataCultivar3 <- soybean_data[soybean_data$Cultivar == chosenCultivar[3],]
+t.test(GY ~ Season, data = soybean_dataCultivar3)
+soybean_dataCultivar4 <- soybean_data[soybean_data$Cultivar == chosenCultivar[4],]
+t.test(GY ~ Season, data = soybean_dataCultivar4)
+soybean_dataCultivar5 <- soybean_data[soybean_data$Cultivar == chosenCultivar[5],]
+t.test(GY ~ Season, data = soybean_dataCultivar5)
 ```
+
+For cultivar's (2 through 5), the p-value was less than alpha (.05) and thus we reject the null hypothesis i (2 through 5) that ngrain yield does not differ by season (ngrain yield season 1 = ngrain yield season 2) in Cultivar i (2 through 5). There is statistically significant evidence to support that the mean of ngrain yield season 1 is not equal to ngrain yield season 2 in Cultivar i (i in c(2,3,4,5)) which are "ELISA IPRO" , "FORTALEZA IPRO", "79I81RSF IPRO" , and "GNS7900 IPRO - AMPLA".
+
+However for cultivar 1, the p-value was greater than alpha (.05) and thus we fail to reject the null hypothesis 1 that ngrain yield does not differ by season (ngrain yield season 1 = ngrain yield season 2) in Cultivar 1. There is insufficient statistically significant evidence to support that the mean of ngrain yield season 1 is not equal to ngrain yield season 2 in Cultivar 1 which is Manu IPRO
+
+Question 2
+
+```{r}
+#part a
+dfAdults <- read.csv("adult/adult.data", header = FALSE, na.strings = " ?")
+head(dfAdults)
+```
+
+```{r}
+#part b
+namesList <- readLines("adult/adult.names")
+#print(namesList) From this line of code, I got the colNames. It is commented out because it is a lot of lines 
+colNames <- c("age", "workclass", "fnlwgt", "education", "education_num", "marital_status",
+              "occupation", "relationship", "race", "sex", "capital_gain", "capital_loss",
+              "hours_per_week", "native_country", "income")
+names(dfAdults) <- colNames
+head(dfAdults)
+```
+
+Renamed the columns above and used snake_case.
+
+```{r}
+#part c
+#missing values are " ?" in dataset 
+colSums(is.na(dfAdults))
+```
+
+```{r}
+#part D
+totalSample = nrow(dfAdults)
+print(totalSample)
+dfAdults <- dfAdults[dfAdults$hours_per_week >=10,]
+totalAtLeast10Hours = nrow(dfAdults)
+print(totalAtLeast10Hours)
+```
+
+The original dataset had 32561 rows and now after filtering for at least 10 hours, there are 32103 rows.
+
+```{r}
+#part E
+library(tidyr)
+cleanDfAdults <- dfAdults |> drop_na(occupation) |> 
+                              drop_na(workclass) |>
+                              drop_na(native_country)
+nrow(cleanDfAdults)
+```
+
+There are now 29873 rows. The reason why we should drop the na's for these three columns is that they are categorical variables and there is no sensible value to fill in it instead. Thus, by dropping the na's it keeps it consistent.
+
+```{r}
+#part f
+cleanDfAdults <- cleanDfAdults[cleanDfAdults$age >= 18 & cleanDfAdults$age <=90 & cleanDfAdults$education != " Preschool",]
+```
+
+```{r}
+nrow(cleanDfAdults)
+```
+
+The final sample size is 29523
+
+Question 3
+
+```{r}
+#part a
+#install.packages("roxygen2")
+#' nextHappy: calculate the next value in the happy number sequence
+#'
+#' @returns a positive integer 
+#' @export
+#' @param x is a positive integer
+#' @examples nextHappy(19), nextHappy(82)
+nextHappy <- function(x) {
+  # sanitize 'input':
+  if (!is.numeric(x) || x <= 0){
+    stop("The input must be a positive integer")
+  }
+  if (length(x) != 1 || x != round(x)){
+    stop("The input must be a positive integer")
+  }
+  if (is.na(x)) {
+    stop("The input must be a positive integer")
+  }
+  stringX <- as.character(x)
+  chars <- strsplit(stringX, "")[[1]]
+  total <- 0
+  for (i in chars){
+    total = total + as.numeric(i)**2
+  }
+  return (total)
+}
+print(nextHappy(19))
+print(nextHappy(82))
+```
+
+```{r}
+#part b
+#' happySequence
+#'
+#' @returns a list containing a sequence (values in the Happy sequence) if the number is happy and a logical value indicating whether the input is a happy number
+#' @export
+#' @param x is a positive integer
+#' @examples
+happySequence <- function(x) {
+  # sanitize 'input':
+  if (!is.numeric(x) || x <= 0){
+    stop("The input must be a positive integer")
+  }
+  if (length(x) != 1 || x != round(x)){
+    stop("The input must be a positive integer")
+  }
+  if (is.na(x)) {
+    stop("The input must be a positive integer")
+  }
+  maxIterations <- 1000
+  theList <- list(
+    sequence = c(x),
+    isHappy = FALSE
+  )
+  for (i in seq_len(maxIterations)){
+    x <- nextHappy(x)
+    if (x == 1){
+      theList$sequence <- c(theList$sequence, x)
+      theList$isHappy <- TRUE
+      return (theList)
+    }
+    if (x %in% theList$sequence) {
+      return(list(isHappy = FALSE))
+    }
+    theList$sequence <- c(theList$sequence, x)
+  }
+  return(list(isHappy = FALSE))
+}
+happySequence(19)
+happySequence(4)
+```
+
+```{r}
+#part c
+#a How many are happy?
+count = 0
+for (i in 1:1000){
+  if(happySequence(i)$isHappy){
+    count = count + 1
+  }
+}
+print(count)
+#part b
+print("Percentage of happy numbers")
+print(count/1000 * 100)
+```
+
+```{r}
+#part c
+#c
+#' happySequence2
+#'
+#' @returns a list containing a sequence (values in the Happy sequence) if the number is happy and a logical value indicating whether the input is a happy number. It also has a numeric value that represents the number of iterations it took before it terminated
+#' @export
+#' @param a positive integer
+#' @examples 
+happySequence2 <- function(x) {
+  # sanitize 'input':
+  if (!is.numeric(x) | x < 0){
+    stop("The input must be a positive integer")
+  }
+  if (length(x) != 1 || x != round(x)){
+    stop("The input must be a positive integer")
+  }
+  maxIterations <- 10000
+  theList <- list(
+    sequence = c(x),
+    isHappy = FALSE,
+    iteration = numeric(0)
+  )
+  for (i in seq_len(maxIterations)){
+    x <- nextHappy(x)
+    if (x == 1){
+      theList$sequence <- c(theList$sequence, x)
+      theList$isHappy <- TRUE
+      theList$iteration <- i
+      return (theList)
+    }
+    if (x %in% theList$sequence) {
+      return(list(isHappy = FALSE, iteration = i))
+    }
+    theList$sequence <- c(theList$sequence, x)
+  }
+  return(list(isHappy = FALSE, iteration = maxIterations))
+}
+highestIterationsUnhappy <- 0
+theXUnhappy <- 0
+highestIterationsHappy <- 0
+theXHappy <- 0
+for (i in 1:1000){
+    iter <- happySequence2(i)$iteration
+    if (!happySequence2(i)$isHappy) {
+      if (iter > highestIterationsUnhappy) {
+        highestIterationsUnhappy <- iter
+        theXUnhappy <- i
+      }
+    }
+    else {
+      if (iter > highestIterationsHappy) {
+        highestIterationsHappy <- iter
+        theXHappy <- i
+      }
+    }
+  }
+print(theXUnhappy)
+print(theXHappy)
+```
+
+The starting value that produces the longest happy sequence that is not a happy number is 269.
+
+The starting value that produces the longest happy sequence that is a happy number is 356.
