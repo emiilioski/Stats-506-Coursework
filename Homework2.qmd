@@ -1,0 +1,305 @@
+---
+title: "HW2"
+format:
+  html:
+    embed-resources: true
+author: Emilia Ilioski
+editor: visual
+---
+
+This is the link to the repo: <https://github.com/emiilioski/Stats-506-Coursework.git>
+
+Question 1:
+
+```{r}
+#part a
+#install.packages("roxygen2")
+#' momentum_walk: calculate the particle's ending coordinates using n steps and probability p
+#'
+#' @returns a pair of coordinates 
+#' @export
+#' @param n is greater than or equal to 1
+#' @param p is between 0 and 1
+#' @examples momentum_walk(3,.5)
+momentum_walk <- function(n,p) {
+  # sanitize 'input':
+  if (!is.numeric(n) || length(n) != 1 || n < 1) {
+    stop("n must be one number >= 1")
+  }
+  if (!is.numeric(p) || length(p) != 1 || p < 0 || p > 1) {
+    stop("p must be one number between 0 and 1")
+  }
+  directions <- c("r", "l", "u","d")
+  prev <- sample(directions, size = 1, replace = TRUE)
+  coordinates <- c(0,0)
+  i <-  0
+  while (i < n) {
+    options <- c("prev", "diff")
+    chosen <- sample(options, prob = c(p, 1-p), size = 1, replace = TRUE)
+    if (chosen != "prev") {
+      prev <- sample(directions, size = 1, replace = TRUE)
+    }
+    if (prev == "r"){
+        coordinates[1] = coordinates[1] + 1
+    }
+    else if (prev == "l") {
+        coordinates[1] = coordinates[1] - 1
+    }
+    else if (prev == "u") {
+        coordinates[2] = coordinates[2] + 1
+    }
+    else {
+        coordinates[2] = coordinates[2] - 1
+    }
+    i = i + 1
+  }
+  return (coordinates)
+}
+
+```
+
+```{r}
+# part b
+#version one with for loop
+#' momentum_walk1: calculate the particle's ending coordinates using n steps and probability p, utilizing a for loop
+#'
+#' @returns a pair of coordinates 
+#' @export
+#' @param n is greater than or equal to 1
+#' @param p is between 0 and 1
+#' @examples momentum_walk1(10, 0.6), momentum_walk1(1000, 0.6)
+momentum_walk1 <- function(n,p) {
+  # sanitize 'input':
+  if (!is.numeric(n) || length(n) != 1 || n < 1) {
+    stop("n must be one number >= 1")
+  }
+  if (!is.numeric(p) || length(p) != 1 || p < 0 || p > 1) {
+    stop("p must be one number between 0 and 1")
+  }
+  directions <- c("r", "l", "u","d")
+  prev <- sample(directions, size = 1, replace = TRUE)
+  coordinates <- c(0,0)
+  i <-  0
+  for (i in seq_len(n- 1)) {
+    options <- c("prev", "diff")
+    chosen <- sample(options, prob = c(p, 1-p), size = 1, replace = TRUE)
+    if (chosen != "prev") {
+      prev <- sample(directions, size = 1, replace = TRUE)
+    }
+    if (prev == "r"){
+        coordinates[1] = coordinates[1] + 1
+    }
+    else if (prev == "l") {
+        coordinates[1] = coordinates[1] - 1
+    }
+    else if (prev == "u") {
+        coordinates[2] = coordinates[2] + 1
+    }
+    else {
+        coordinates[2] = coordinates[2] - 1
+    }
+  }
+  return (coordinates)
+}
+
+#version 2
+#' momentum_walk2: calculate the particle's ending coordinates using n steps and probability p, utilizing sapply
+#'
+#' @returns a pair of coordinates 
+#' @export
+#' @param n is greater than or equal to 1
+#' @param p is between 0 and 1
+#' @examples momentum_walk2(10, 0.6), momentum_walk2(1000, 0.6)
+momentum_walk2 <- function(n,p) {
+   # sanitize 'input':
+  if (!is.numeric(n) || length(n) != 1 || n < 1) {
+    stop("n must be one number >= 1")
+  }
+  if (!is.numeric(p) || length(p) != 1 || p < 0 || p > 1) {
+    stop("p must be one number between 0 and 1")
+  }
+  directions <- c("r", "l", "u","d")
+  prev <- sample(directions, size = 1, replace = TRUE)
+  steps <- sapply(1:n, function(i) {
+    chosen <- sample(c("prev","diff"), 1, prob = c(p,1-p))
+    if (chosen != "prev") {
+      prev <- sample(directions, 1, replace = TRUE)
+    }
+    prev
+  })
+  x <- sum(steps == "r") - sum(steps == "l")
+  y <- sum(steps == "u") - sum(steps == "d")
+  return (c(x,y))
+}
+momentum_walk1(10, 0.6)
+momentum_walk2(10, 0.6)
+momentum_walk1(1000, 0.6)
+momentum_walk2(1000, 0.6)
+```
+
+The logic behind the first version is that it loops n times. Each time it samples a either previous or other direction with previous direction probability p, then it checks if it matches the previous direction, if not it updates the previous direction using a sample of the directions. Then it moves the appropriate coordinate based on the direction sampled.
+
+The logic behind the second version is that it uses sapply to apply a function which samples a previous direction or other direction n times with previous direction probability p and then checks if it matches the previous direction, if not it updates the previous direction and samples for the other direction. Then it sums up how many times each direction occurred and then updates the coordinates accordingly.
+
+```{r}
+# part c
+set.seed(25)
+momentum_walk1(10, 0.6)
+set.seed(25)
+momentum_walk1(10, 0.6)
+
+set.seed(25)
+momentum_walk1(1000, 0.6)
+set.seed(25)
+momentum_walk1(1000, 0.6)
+```
+
+The random numbers from R come from a random number generator which uses an algorithm. Set seed resets the alogirthm to the same starting point and thus sample() will output the same thing each time because of the set.seed. Though it is important to set the seed before each call to the function, because each time the function uses random numbers
+
+```{r}
+#part d
+set.seed(25)
+vec1 <- momentum_walk1(1000, 0)
+vec2 <- momentum_walk1(1000, 0.5)
+vec3 <- momentum_walk1(1000, 0.9)
+sqrt(vec1[1]**2 + vec1[2]**2)
+sqrt(vec2[1]**2 + vec2[2]**2)
+sqrt(vec3[1]**2 + vec3[2]**2)
+```
+
+The momentum appears to increase the final distance because the .9 probability has the highest distance about double the other two distances. This makes sense because with p =0 the steps are pretty random so they end up canceling each other out often but with p = .9 the particle goes the same direction for a while so less cancellation thus higher distance.
+
+```{r}
+#part e
+set.seed(250)
+probs <- c(0,.25, .5, .75, .9)
+dists <- c()
+meanDists <- c()
+for (i in 1:length(probs)) {
+    distances <- replicate(1000, {
+        location <- momentum_walk1(1000, probs[i])
+        sqrt(location[1]^2 + location[2]^2)})
+    meanDists[i] = mean(distances)
+}
+results <- data.frame(p = probs, mean_distance = meanDists)
+print(results)
+```
+
+The average distance increases as the probability p increases. The average distance grows faster at a larger p. Notably, p = 0 distance is approximately 4-5 times smaller than p =.9's distance
+
+```{r}
+# part f
+library(microbenchmark)
+microbenchmark(
+  mw1  = momentum_walk1(1000, 0.6),
+  mw2 = momentum_walk2(1000, 0.6),
+  times = 50)
+
+microbenchmark(
+  mw11  = momentum_walk1(100000, 0.6),
+  mw22 = momentum_walk2(100000, 0.6),
+  times = 5)
+```
+
+Surprisingly, version 1 with the for loop is faster than version 2, for both step counts. For step count 1000, the median for version 1 is 4.25 whereas the median for version 2 was 4.46 (the mean also follows a similar trend). While this is a fairly small difference (less than a millisecond), the difference in speed becomes more obvious when the step count is 100000. Then version 1 has a median of 499 and version 2 has a median of 512, which is a 13 millisecond difference. They probably differ because sapply has to call a function for every step and then later has to go through all the coordinates to sum them, where as the for loop updates the coordinates immediately.
+
+Problem 2:
+
+```{r}
+set.seed(250)
+day <- function() {
+  sum(rpois(3,4)) +
+  rnorm(1, 45, sqrt(16)) +
+  sum(rpois(6,15)) +
+  rnorm(1, 55, sqrt(25)) +
+  sum(rpois(6,9))
+}
+mean(replicate(10000, day()))
+```
+
+Expected number of total passengers who baord the bus per day is 255.56 or about 256
+
+Problem 3:
+
+```{r}
+youtube <- read.csv(
+  "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-03-02/youtube.csv"
+)
+```
+
+```{r}
+#part a
+library(tidyverse)
+head(youtube)
+youtubeClean <- youtube |> select(-title, -etag, -youtube_url, -superbowl_ads_dot_com_url, -brand, -thumbnail, -description, -channel_title, -published_at, -id, -kind)
+head(youtubeClean)
+print(dim(youtubeClean))
+```
+
+There are now 14 columns and 247 rows.
+
+```{r}
+# part b
+hist(youtubeClean$view_count)
+hist(youtubeClean$like_count)
+hist(youtubeClean$dislike_count)
+hist(youtubeClean$favorite_count)
+hist(youtubeClean$comment_count)
+```
+
+For view_count, like_count, dislike_count, and comment_count all of these are heavily right-skewed which goes against the rule that we want normal residuals and constant variance for linear regressions. So these would all have to be transformed using a log transformation. The log transformation would scale the counts better so that it is not as skewed.
+
+For favorite_count, this would not be appropriate to use for the model because there's basically no variation. In the histogram it appears as one block because most of the favorite_count is zero. Thus this would not be helpful in a model.
+
+```{r}
+# part b transformations
+youtubeClean$view_count <- log1p(youtubeClean$view_count)
+youtubeClean$like_count <- log1p(youtubeClean$like_count)
+youtubeClean$dislike_count <- log1p(youtubeClean$dislike_count)
+youtubeClean$comment_count <- log1p(youtubeClean$comment_count)
+hist(youtubeClean$view_count)
+hist(youtubeClean$like_count)
+hist(youtubeClean$dislike_count)
+hist(youtubeClean$comment_count)
+```
+
+They are still a little skewed but much less than before, and the spread looks much better (more visible variation).
+
+```{r}
+#part c
+set.seed(100)
+outcomes <- c("view_count", "like_count", "dislike_count", "comment_count")
+#sapply(youtubeClean, class)
+binaryCharacteristics <- c("patriotic", "animals", "funny", "celebrity", "use_sex", "show_product_quickly", "danger")
+results <- data.frame()
+for (i in outcomes) {
+  for (j in binaryCharacteristics) {
+    fit <- lm(as.formula(paste(i, "~", j, "+ year")), data = youtubeClean)
+    coefs <- summary(fit)$coefficients[2, ]
+    results <- rbind(results, data.frame(outcome = i, characteristic = j, estimate = coefs["Estimate"], p_value = coefs["Pr(>|t|)"]))
+  }
+}
+rownames(results) <- NULL
+results$significant <- results$p_value < .05
+print(results)
+```
+
+Danger has a statistically significant association with view_count and like_count as for both of those the p-value is \< 0.05 thus there is enough evidence to support the association. For both view_count and like_count, danger has a positive association as the estimate values are above 0. Notably, like_count has a stronger positive association with danger as compared to view count (.1905 verses .079 respectively).
+
+Additionally, the commercial characteristic that has the largest positive estimated association with view counts is danger with the estimate at .079.
+
+```{r}
+#part d
+#from part c the binary commerical characteristic with the smallest p-value for predicting view counts is danger
+set.seed(100)
+youtube2 <- youtubeClean[complete.cases(youtubeClean[, c("view_count", "danger", "year")]), ]
+X <- cbind(1, as.numeric(youtube2$danger), youtube2$year)
+colnames(X) <- c("intercept", "danger", "year")
+y <- youtube2$view_count
+Bhat <- solve(t(X) %*% X) %*% t(X) %*% y
+fit <- lm(view_count ~ danger + year, data = youtube2)
+coef(fit)
+all.equal(as.numeric(Bhat), as.numeric(coef(fit)))
+```
+
+They both the get the same estimates
